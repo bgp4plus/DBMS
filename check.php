@@ -56,9 +56,9 @@
   </form>
   <?php
     session_start();
-    $_session["name"]=$name;
-    $_session["email"]=$email;
-    $_session["message"]=$message;
+    $_SESSION["name"]=$name;
+    $_SESSION["email"]=$email;
+    $_SESSION["message"]=$message;
   ?>
 </body>
 </html>
