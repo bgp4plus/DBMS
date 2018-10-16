@@ -3,42 +3,50 @@
   $name="takezaki";
   $email="takezaki@example.com";
   $message="Fight!";
-  $answer=new dbmanager;
+  $answer = array(
+    "name" => $name, "email" => $email, "message" => $message
+  );
+  $dbmanager=new dbmanager();
+  $dbmanager->insertAnswer($answer);
 
-  $answer->dbconnect();
-  $query="insert into answer values(':name',':email',':message');";
 
-  $answer->sql($query);
-  $answer->dbrun();
 
   class dbmanager{
+    private $mypdo;
 
-    public function dbconnect(){
-      $dbsetting=array(
-        "dbname"=>"guestbook",
-        "dbhost"=>"localhost",
-        "user"=>"root",
-        "pass"=>"",
-      );
+    private $dbsetting=array(
+      'dbname'=>'guestbook',
+      'dbhost'=>'localhost',
+      'user'=>'root',
+      'pass'=>'',
+    );
 
-      $this->dbpdo($dbsetting["dbname"],$dbsetting["dbhost"]);
+    private function dbconnect(){
+
+      $pdoset = $this->dbpdo($this->dbsetting["dbname"],$this->dbsetting["dbhost"]);
       try{
-        $pdo=new PDO($this->$pdoset,$dbsetting["user"],$dbsetting["pass"]);
+        $this->mypdo=new PDO($pdoset,$this->dbsetting["user"],$this->dbsetting["pass"],array(PDO::ATTR_EMULATE_PREPARES => false));
       }catch(PDOException $e){
         echo "データベース接続エラー";
         exit;
       }
     }
 
-    public function dbpdo($dname,$host){
-      $pdoset="mysql:dbname=$dname;dbhost=$host;charset=utf8mb4";
+    private function dbdisconnect() {
+      unset($this->mypdo);
     }
 
-    public function sql($sql){
-      $stmt=$pdo->prepare($sql);
-      $stmt->bindParam(":name",$name,PDO::PARAM_STR);
-      $stmt->bindParam(":email",$email,PDO::PARAM_STR);
-      $stmt->bindParam(":message",$message,PDO::PARAM_STR);
+    private function dbpdo($dbname,$dbhost){
+      $pdoset="mysql:dbname='.$dbname.';dbhost='.$dbhost.';charset=utf8mb4";
+      return $pdoset;
+    }
+
+    public function sql($sql, $answer){
+      $stmt=$this->mypdo->prepare($sql);
+      $stmt->bindParam(":name",$answer->name,PDO::PARAM_STR);
+      $stmt->bindParam(":email",$answer->email,PDO::PARAM_STR);
+      $stmt->bindParam(":message",$answer->message,PDO::PARAM_STR);
+      return $stmt;
     }
 
     public function dbrun(){
@@ -49,6 +57,19 @@
       }catch(PDOException $e){
         echo "書き込み失敗";
         exit;
+      }
+    }
+
+    public function insertAnswer ($answer) {
+      try {
+        $this->dbconnect();
+        $query="insert into test values(':name',':email',':message');";
+
+        $stmt = $answer->sql($query, $answer);
+        $stmt->execute();
+      } catch (PDOException $e) {
+        echo "error" + $e->getMessage();
+        throw $e;
       }
     }
   }
