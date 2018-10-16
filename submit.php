@@ -17,7 +17,8 @@
     $dbcon=new dbmanager;
     $dbcon->dbconnect("guestbook","root");
     $dbcon->dbinsert();
-  ?>
+    echo "回答完了";
+?>
 </body>
 </html>
 
